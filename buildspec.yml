@@ -1,0 +1,31 @@
+version: 0.2
+
+env:
+  parameter-store:
+    DOCKER_REGISTRY_URL: /myflaskapp/docker-credentials/url
+    DOCKER_REGISTRY_USERNAME: /myflaskapp/docker-credentials/username
+    DOCKER_REGISTRY_PASSWORD: /myflaskapp/docker-credentials/password
+
+phases:
+  install:
+    runtime-versions:
+      python: 3.11
+    commands:
+      - echo Install phase completed
+
+  pre_build:
+    commands:
+      - echo Logging in to Docker registry
+      - echo "$DOCKER_REGISTRY_PASSWORD" | docker login \
+        -u "$DOCKER_REGISTRY_USERNAME" \
+        --password-stdin "$DOCKER_REGISTRY_URL"
+
+  build:
+    commands:
+      - echo Build started on `date`
+      - docker build -t "$DOCKER_REGISTRY_URL/$DOCKER_REGISTRY_USERNAME/sample-python-flask-app:latest" .
+      - docker push "$DOCKER_REGISTRY_URL/$DOCKER_REGISTRY_USERNAME/sample-python-flask-app:latest"
+
+  post_build:
+    commands:
+      - echo Build completed on `date`
